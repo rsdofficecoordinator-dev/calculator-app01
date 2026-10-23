@@ -1,0 +1,323 @@
+<!doctype html>
+<html lang="hi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>SoftCalc Calculator</title>
+<style>
+*{box-sizing:border-box}
+body{margin:0;background:#e7e8ea;color:#17181a;font-family:Arial,sans-serif}
+.app{max-width:600px;margin:auto;min-height:100vh;padding:15px 20px;display:flex;flex-direction:column}
+.top{display:flex;justify-content:space-between;align-items:center}
+button{cursor:pointer}
+.top button{border:0;background:none;font-size:26px;padding:10px}
+.display{flex:1;min-height:210px;display:flex;flex-direction:column;justify-content:flex-end;align-items:flex-end;padding:20px 5px}
+.expr{font-size:25px;color:#777;overflow-wrap:anywhere}
+.result{font-size:55px;overflow-wrap:anywhere}
+.keys{display:grid;grid-template-columns:repeat(4,1fr);gap:13px 12px;padding-bottom:20px}
+.sci{display:none;grid-template-columns:repeat(5,1fr);gap:9px;padding-bottom:18px}
+.key{border:0;aspect-ratio:1.15;border-radius:50%;background:linear-gradient(145deg,#fafafa,#dedfe1);box-shadow:5px 5px 12px #d0d1d3,-5px -5px 12px #f8f9fa;font-size:clamp(20px,6vw,34px)}
+.key:active{box-shadow:inset 3px 3px 6px #ccc}
+.op{background:#e1e2e4}
+.equal{background:#ff8a18;color:white}
+.sci .key{font-size:clamp(14px,4vw,23px)}
+.screen{display:none}
+.screen.active{display:block}
+.heading{font-size:27px;margin:20px 0}
+.tiles{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+.tile,.setting{border:0;background:white;border-radius:18px;padding:20px 8px;font-size:17px}
+.tile{min-height:120px}
+.unitbox{background:white;border-radius:16px;padding:16px;margin:12px 0}
+.unitbox input,.unitbox select{width:100%;padding:12px;margin:6px 0;border:0;background:#f0f1f2;border-radius:10px;font-size:18px}
+.setting{display:block;width:100%;text-align:left;margin-bottom:12px}
+.historyrow{display:block;width:100%;padding:15px;margin:8px 0;border:0;border-radius:12px;text-align:right;background:white;font-size:18px}
+@media(max-height:700px){.display{min-height:100px}.keys{gap:8px}.key{aspect-ratio:1.3}}
+</style>
+</head>
+<body>
+<main class="app">
+
+<div class="top">
+<button onclick="show('calc')">↙</button>
+<div>
+<button onclick="toggleSci()">√π</button>
+<button onclick="show('converter')">▦</button>
+<button onclick="show('menu')">⋮</button>
+</div>
+</div>
+
+<section id="calc" class="screen active">
+<div class="display">
+<div class="expr" id="expr"></div>
+<div class="result" id="result">0</div>
+</div>
+
+<div class="sci" id="scientific">
+<button class="key" data-v="sin(">sin</button>
+<button class="key" data-v="cos(">cos</button>
+<button class="key" data-v="tan(">tan</button>
+<button class="key" onclick="setMode(false)">rad</button>
+<button class="key" onclick="setMode(true)">deg</button>
+<button class="key" data-v="log(">log</button>
+<button class="key" data-v="ln(">ln</button>
+<button class="key" data-v="("> ( </button>
+<button class="key" data-v=")"> ) </button>
+<button class="key" data-v="sqrt(">√</button>
+<button class="key" data-v="^">^</button>
+<button class="key" data-v="pi">π</button>
+<button class="key" data-v="e">e</button>
+<button class="key" data-v="!">!</button>
+<button class="key" data-a="clear">AC</button>
+<button class="key" data-v="7">7</button>
+<button class="key" data-v="8">8</button>
+<button class="key" data-v="9">9</button>
+<button class="key op" data-v="/">÷</button>
+<button class="key" data-v="4">4</button>
+<button class="key" data-v="5">5</button>
+<button class="key" data-v="6">6</button>
+<button class="key op" data-v="*">×</button>
+<button class="key" data-v="1">1</button>
+<button class="key" data-v="2">2</button>
+<button class="key" data-v="3">3</button>
+<button class="key op" data-v="-">−</button>
+<button class="key" data-v="00">00</button>
+<button class="key" data-v="0">0</button>
+<button class="key" data-v=".">.</button>
+<button class="key op" data-v="+">+</button>
+<button class="key" data-a="back">⌫</button>
+<button class="key" data-v="%">%</button>
+<button class="key" data-v="(">(</button>
+<button class="key equal" data-a="equals">=</button>
+</div>
+
+<div class="keys" id="basic">
+<button class="key op" data-a="clear">AC</button>
+<button class="key op" data-v="%">%</button>
+<button class="key op" data-a="back">⌫</button>
+<button class="key op" data-v="/">÷</button>
+<button class="key" data-v="7">7</button>
+<button class="key" data-v="8">8</button>
+<button class="key" data-v="9">9</button>
+<button class="key op" data-v="*">×</button>
+<button class="key" data-v="4">4</button>
+<button class="key" data-v="5">5</button>
+<button class="key" data-v="6">6</button>
+<button class="key op" data-v="-">−</button>
+<button class="key" data-v="1">1</button>
+<button class="key" data-v="2">2</button>
+<button class="key" data-v="3">3</button>
+<button class="key op" data-v="+">+</button>
+<button class="key" data-v="00">00</button>
+<button class="key" data-v="0">0</button>
+<button class="key" data-v=".">.</button>
+<button class="key equal" data-a="equals">=</button>
+</div>
+</section>
+
+<section id="converter" class="screen">
+<div class="heading"><button onclick="show('calc')">←</button> Unit Converter</div>
+<div class="tiles" id="tiles">
+<button class="tile" onclick="openUnit('Length')">📏<br>Length</button>
+<button class="tile" onclick="openUnit('Area')">▣<br>Area</button>
+<button class="tile" onclick="openUnit('Volume')">⬡<br>Volume</button>
+<button class="tile" onclick="openUnit('Weight')">⚖<br>Weight</button>
+<button class="tile" onclick="openUnit('Temperature')">♨<br>Temperature</button>
+<button class="tile" onclick="openUnit('Speed')">◉<br>Speed</button>
+<button class="tile" onclick="openUnit('Pressure')">◴<br>Pressure</button>
+<button class="tile" onclick="openUnit('Power')">ϟ<br>Power</button>
+<button class="tile" onclick="openUnit('Currency')">₹<br>Currency</button>
+<button class="tile" onclick="openUnit('Number system')">01<br>Number system</button>
+</div>
+<div id="unitDetail" style="display:none">
+<h2 id="unitTitle"></h2>
+<div class="unitbox">From
+<input id="fromVal" type="number" value="1" oninput="convert()">
+<select id="fromUnit" onchange="convert()"></select>
+</div>
+<button onclick="swap()">⇅ Swap</button>
+<div class="unitbox">To
+<input id="toVal" readonly>
+<select id="toUnit" onchange="convert()"></select>
+</div>
+<p id="note"></p>
+<button onclick="closeUnit()">← Back</button>
+</div>
+</section>
+
+<section id="menu" class="screen">
+<div class="heading">More</div>
+<button class="setting" onclick="show('settings')">⚙ Settings</button>
+<button class="setting" onclick="show('history')">🕘 History</button>
+<button class="setting" onclick="show('converter')">▦ Unit Converter</button>
+<button class="setting" onclick="show('calc')">← Calculator</button>
+</section>
+
+<section id="settings" class="screen">
+<div class="heading">Settings</div>
+<div class="setting">SoftCalc Calculator<small>Version 1.0</small></div>
+<button class="setting" onclick="alert('Calculations happen in your browser.')">Privacy</button>
+<button class="setting" onclick="show('menu')">← Back</button>
+</section>
+
+<section id="history" class="screen">
+<div class="heading">History <button onclick="historyItems=[];renderHistory()">Clear</button></div>
+<div id="historyBox"></div>
+<button class="setting" onclick="show('menu')">← Back</button>
+</section>
+
+</main>
+
+<script>
+let expression='',lastResult=false,degree=true,historyItems=[];
+const $=id=>document.getElementById(id);
+
+function show(id){
+ document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+ $(id).classList.add('active');
+ if(id==='history')renderHistory();
+}
+function toggleSci(){
+ let open=$('scientific').style.display!=='grid';
+ $('scientific').style.display=open?'grid':'none';
+ $('basic').style.display=open?'none':'grid';
+}
+function setMode(v){degree=v}
+function update(){
+ $('expr').textContent=expression.replace(/\*/g,'×').replace(/\//g,'÷');
+ if(!expression)$('result').textContent='0';
+}
+function add(v){
+ if(lastResult&&!/[+\-*/%^)]/.test(v))expression='';
+ lastResult=false;
+ expression+=v;
+ update();
+}
+function clear(){expression='';lastResult=false;update()}
+function back(){expression=expression.slice(0,-1);update()}
+function factorial(n){
+ if(n<0||n>170||!Number.isInteger(n))throw Error();
+ let r=1;for(let i=2;i<=n;i++)r*=i;return r;
+}
+function calculate(src){
+ let s=src.replace(/\bpi\b/g,'Math.PI')
+          .replace(/\be\b/g,'Math.E')
+          .replace(/(\d+(?:\.\d+)?)%/g,'($1/100)')
+          .replace(/(\d+(?:\.\d+)?)!/g,'factorial($1)')
+          .replace(/\^/g,'**');
+
+ const funcs={
+  sqrt:'sqrt',log:'log10',ln:'log',
+  sin:'sin',cos:'cos',tan:'tan'
+ };
+ for(const name in funcs){
+  s=s.replace(new RegExp('\\b'+name+'\\(','g'),'Math.'+funcs[name]+'(');
+ }
+ if(degree){
+  s=s.replace(/Math\.(sin|cos|tan)\(([^()]*)\)/g,
+   (m,f,x)=>`Math.${f}((${x})*Math.PI/180)`);
+ }
+ const check=s.replace(/Math\.(PI|E|sqrt|log10|log|sin|cos|tan)\b/g,'')
+               .replace(/\bfactorial\b/g,'');
+ if(!/^[0-9+\-*/().,%A-Za-z]*$/.test(s)||/[A-Za-z]/.test(check))
+  throw Error('Invalid');
+ let v=Function('factorial','return ('+s+')')(factorial);
+ if(typeof v!=='number'||!Number.isFinite(v))throw Error('Math error');
+ return v;
+}
+function equals(){
+ if(!expression)return;
+ try{
+  let out=Number(calculate(expression).toPrecision(12)).toString();
+  historyItems.unshift({e:expression,r:out});
+  $('expr').textContent=expression+' =';
+  $('result').textContent=out;
+  expression=out;lastResult=true;
+ }catch(e){$('result').textContent='Error'}
+}
+document.querySelectorAll('[data-v]').forEach(b=>
+ b.addEventListener('click',()=>add(b.dataset.v)));
+document.querySelectorAll('[data-a]').forEach(b=>
+ b.addEventListener('click',()=>{
+  if(b.dataset.a==='clear')clear();
+  if(b.dataset.a==='back')back();
+  if(b.dataset.a==='equals')equals();
+ }));
+document.addEventListener('keydown',e=>{
+ if(!$('calc').classList.contains('active'))return;
+ if(/^[0-9.]$/.test(e.key))add(e.key);
+ else if('+-*/%^()'.includes(e.key))add(e.key);
+ else if(e.key==='Enter'||e.key==='='){e.preventDefault();equals()}
+ else if(e.key==='Backspace')back();
+ else if(e.key==='Escape')clear();
+});
+
+function renderHistory(){
+ let box=$('historyBox');box.innerHTML='';
+ if(!historyItems.length){box.textContent='No calculations yet';return}
+ historyItems.forEach(h=>{
+  let b=document.createElement('button');b.className='historyrow';
+  b.textContent=h.e+' = '+h.r;
+  b.onclick=()=>{expression=h.r;update();show('calc')};
+  box.appendChild(b);
+ });
+}
+
+const units={
+ Length:{Meter:1,Kilometer:1000,Centimeter:.01,Millimeter:.001,Mile:1609.344,Foot:.3048,Inch:.0254},
+ Area:{'Square meter':1,'Square kilometer':1e6,'Square centimeter':.0001,Hectare:10000,Acre:4046.856},
+ Volume:{Liter:1,Milliliter:.001,'Cubic meter':1000,'US gallon':3.785412},
+ Weight:{Kilogram:1,Gram:.001,Milligram:.000001,Pound:.453592,Ounce:.0283495},
+ Temperature:{Celsius:1,Fahrenheit:1,Kelvin:1},
+ Speed:{'Meter/second':1,'Kilometer/hour':.2777778,'Mile/hour':.44704,Knot:.514444},
+ Pressure:{Pascal:1,Kilopascal:1000,Bar:100000,Atmosphere:101325,PSI:6894.757},
+ Power:{Watt:1,Kilowatt:1000,Megawatt:1e6,Horsepower:745.7},
+ Currency:{'INR sample':1,'USD sample':83.5,'EUR sample':90.5},
+ 'Number system':{Decimal:10,Binary:2,Octal:8,Hexadecimal:16}
+};
+let category='Length';
+function openUnit(cat){
+ category=cat;
+ $('tiles').style.display='none';
+ $('unitDetail').style.display='block';
+ $('unitTitle').textContent=cat;
+ let names=Object.keys(units[cat]);
+ ['fromUnit','toUnit'].forEach((id,i)=>{
+  $(id).innerHTML='';
+  names.forEach(n=>{
+   let o=document.createElement('option');
+   o.value=n;o.textContent=n;$(id).appendChild(o);
+  });
+  $(id).selectedIndex=Math.min(i,names.length-1);
+ });
+ $('fromVal').value=1;
+ $('note').textContent=cat==='Currency'?'Sample exchange rates only; not live rates.':'';
+ convert();
+}
+function closeUnit(){
+ $('tiles').style.display='grid';
+ $('unitDetail').style.display='none';
+}
+function swap(){
+ let a=$('fromUnit').selectedIndex;
+ $('fromUnit').selectedIndex=$('toUnit').selectedIndex;
+ $('toUnit').selectedIndex=a;convert();
+}
+function convert(){
+ let n=Number($('fromVal').value),a=$('fromUnit').value,b=$('toUnit').value,v;
+ try{
+  if(category==='Temperature'){
+   let c=a==='Celsius'?n:a==='Fahrenheit'?(n-32)*5/9:n-273.15;
+   v=b==='Celsius'?c:b==='Fahrenheit'?c*9/5+32:c+273.15;
+  }else if(category==='Number system'){
+   v=parseInt(String($('fromVal').value||'0'),units[category][a]);
+   if(!Number.isFinite(v))throw Error();
+   v=v.toString(units[category][b]).toUpperCase();
+  }else{
+   v=n*units[category][a]/units[category][b];
+  }
+  $('toVal').value=typeof v==='number'?Number(v.toPrecision(10)):v;
+ }catch(e){$('toVal').value='Invalid input'}
+}
+</script>
+</body>
+</html>
